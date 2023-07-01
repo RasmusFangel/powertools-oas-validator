@@ -1,0 +1,40 @@
+# flake8: noqa
+
+event = {
+    "resource": "/test-endpoint",
+    "path": "/test-path/test-endpoint",
+    "httpMethod": "POST",
+    "cookies": [
+        "nevergonnagiveyouup",
+        "nevergonna=bringyoudown; secure; httponly; samesite=strict; path=/; domain=.example.com; max-age=3600; expires=Mon, 01-Jan-2020 00:00:00 GMT; version=1; comment=something; commenturl=http://example.com/",
+    ],
+    "headers": {
+        "Accept": "*/*",
+        "Accept-Encoding": "gzip, deflate",
+        "CloudFront-Forwarded-Proto": "https",
+        "CloudFront-Is-Desktop-Viewer": "true",
+        "CloudFront-Is-Mobile-Viewer": "false",
+        "CloudFront-Is-SmartTV-Viewer": "false",
+        "CloudFront-Is-Tablet-Viewer": "false",
+        "CloudFront-Viewer-Country": "IE",
+        "Content-Type": "application/json",
+        "User-Agent": "python-requests/2.28.2",
+        "X-Forwarded-Port": "443",
+        "X-Forwarded-Proto": "https",
+    },
+    "multiValueHeaders": {
+        "Accept": ["*/*"],
+        "Accept-Encoding": ["gzip, deflate"],
+        "CloudFront-Forwarded-Proto": ["https"],
+        "CloudFront-Is-Desktop-Viewer": ["true"],
+        "CloudFront-Is-Mobile-Viewer": ["false"],
+        "CloudFront-Is-SmartTV-Viewer": ["false"],
+        "CloudFront-Is-Tablet-Viewer": ["false"],
+        "CloudFront-Viewer-Country": ["IE"],
+        "Content-Type": ["application/json"],
+        "User-Agent": ["python-requests/2.28.2"],
+        "x-amz-date": ["20230613T082642Z"],
+        "X-Forwarded-Port": ["443"],
+        "X-Forwarded-Proto": ["https"],
+    },
+}

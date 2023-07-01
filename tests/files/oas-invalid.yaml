@@ -1,0 +1,43 @@
+openapi: 3.0.3
+
+
+paths:
+  /test-endpoint:
+    post:
+      summary: Summary
+      tags:
+        - Test
+      requestBody:
+        description: Description
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - param_1
+                - param_2
+              properties:
+                param_1:
+                  description: Param 1
+                  type: string
+                param_2:
+                  description: Param 2
+                  type: string
+                opt_param_1:
+                  description: Opt Param 1
+                  type: string
+                  enum:
+                    - ENUM_1
+                    - ENUM_2
+      responses:
+        "200":
+          description: Reps Description
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    description: message_example
+                    type: string

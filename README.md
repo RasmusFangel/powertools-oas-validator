@@ -1,5 +1,5 @@
 # powertools-oas-validator
-<br>[![PyPI version](https://badge.fury.io/py/powertools-oas-validator.svg)](https://pypi.org/project/powertools-oas-validator/) ![Build](https://github.com/RasmusFangel/powertools-oas-validator/workflows/Release/badge.svg) ![CI](https://github.com/RasmusFangel/powertools-oas-validator/workflows/CI/badge.svg)
+<br>[![PyPI version](https://badge.fury.io/py/powertools-oas-validator.svg)](https://pypi.org/project/powertools-oas-validator/) ![Release](https://github.com/RasmusFangel/powertools-oas-validator/workflows/Release/badge.svg) ![CI](https://github.com/RasmusFangel/powertools-oas-validator/workflows/CI/badge.svg)
 
 ## Introduction
 
@@ -66,3 +66,5 @@ def lambda_handler(event: Dict, context: LambdaContext) -> Dict:
     return response
 ```
 
+## Contributions
+Please fork this repository and make a pull request from the fork and I will review it ASAP.

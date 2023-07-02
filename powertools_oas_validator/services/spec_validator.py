@@ -2,12 +2,21 @@ import re
 from typing import Dict
 
 from aws_lambda_powertools.utilities.validation import SchemaValidationError
-from chocs import HttpRequest, Route
-from openapi_spec_validator import validate_spec as oas_validator
-from opyapi.errors import ValidationError
+from openapi_core import validate_request
+from openapi_core.validation.request.validators import APICallRequestValidator
+from openapi_core.validation.schemas.exceptions import ValidateError
 
-from powertools_oas_validator.services.request_validator import RequestValidatorABC
+from powertools_oas_validator.exceptions import UnsupportedOpenAPIVersion
+from powertools_oas_validator.overrides import (
+    V30RequestUnmarshaller,
+    V31RequestUnmarshaller,
+)
+from powertools_oas_validator.services.event_parser import EventParserProtocol
 from powertools_oas_validator.services.spec_loader import SpecLoaderProtocol
+from powertools_oas_validator.services.spec_parser import SpecParser
+from powertools_oas_validator.types import Request
+
+marshaller_map = {"3.1": V31RequestUnmarshaller, "3.0": V30RequestUnmarshaller}
 
 
 class SpecValidator:
@@ -16,83 +25,74 @@ class SpecValidator:
         file_path: str,
         event: Dict,
         spec_loader: SpecLoaderProtocol,
-        request_validator: RequestValidatorABC,
+        event_parser: EventParserProtocol,
     ) -> None:
         self.file_path = file_path
         self.event = event
         self.spec_loader = spec_loader
-        self.request_validator = request_validator
-
-    def validate_spec(self) -> None:
-        loaded_spec = self.spec_loader.read_from_file_name(self.file_path)
-
-        # Raises OpenAPIValidationError on error
-        oas_validator(spec=loaded_spec.spec_dict, spec_url=loaded_spec.spec_url)
+        self.event_parser = event_parser
 
     def validate_request_against_spec(self) -> None:
-        request = self._event_to_request(self.event)
+        self.spec = self.spec_loader.read_from_file_name()
 
-        validator_cache_key = f"{request.method} {request.path}".lower()
-        if validator_cache_key not in self.request_validator._validators:
-            self.request_validator._validators[
-                validator_cache_key
-            ] = self.request_validator.get_validators_for_uri(
-                request.path,
-                request.method,
-                str(request.headers.get("content-type", "application/json")),
-            )
-
-        validators = self.request_validator._validators[validator_cache_key]
-        if not validators:
-            return
-        for validator in validators:
-            # Raises Validation Error
-            # https://github.com/kodemore/chocs-openapi/blob/main/chocs_middleware/openapi/error.py
-            try:
-                validator(request)
-            except ValidationError as ex:
-                raise self.validator_error_to_schema_validaton_error(ex, request)
-
-    def _event_to_request(self, event: Dict) -> HttpRequest:
-        req = HttpRequest(
-            path=self.request_validator.get_path(event),
-            method=self.request_validator.get_method(event),
-            headers=self.request_validator.get_headers(event),
-            body=self.request_validator.get_body(event),
-            query_string=self.request_validator.get_query_string(event),
-        )
-
-        req._cookies = self.request_validator.get_cookies(event)
-        req.route = Route(req.path)
-
-        return req
-
-    def validator_error_to_schema_validaton_error(
-        self, ex: ValidationError, request: HttpRequest
-    ) -> SchemaValidationError:
-        violating_param = re.search("`(.+?)`", ex.context["reason"])
-        violating_param = violating_param.group(1)  # type: ignore
-
-        name = f"paths.{request.path.lstrip('/')}.{request.method.value.lower()}"
-
-        code_to_oas_path = {
-            "invalid_request_body": "requestBody",
-            "invalid_request_query": "parameters",
-            "invalid_request_headers": "parameters",
-            "invalid_request_uri": "parameters",
-        }
+        request = self.event_parser.event_to_request()
 
         try:
-            name = name + f".{code_to_oas_path[ex.code]}"
-        except KeyError:
-            ...  # No support for invalid_request_cookies
+            validate_request(
+                request,
+                spec=self.spec,
+                base_url=request.host_url,
+                cls=self._get_class(),  # type: ignore
+            )
 
-        name = name + f".[{violating_param}]"
-        path = name.replace("[", "").replace("]", "").split(".")
+        except ValidateError as ex:
+            raise self.schema_validaton_error(ex, request)
+
+    def schema_validaton_error(
+        self, ex: ValidateError, request: Request
+    ) -> SchemaValidationError:
+        error_message = ""
+
+        error_path = ""
+        violating_params = ""
+        for error in ex.schema_errors:  # type: ignore
+            if "property" in error.message:
+                error_path = ".requestBody"
+            elif "parameter" in error.message:
+                error_path = ".parameters"
+            try:
+                violating_params = (
+                    violating_params
+                    + re.search("'(.+?)'", error.message).group(1)  # type: ignore
+                    + ", "
+                )
+            except Exception:
+                violating_params = ""
+
+            error_message = error_message + error.message + ". "
+
+        name = request.path.replace("/", ".").lstrip(".") + error_path
+        name = name + f"[{violating_params.rstrip(', ')}]"
+        error_message = error_message.rstrip(" ")
+        path = name.replace("[", ".").replace("]", "").split(".")
 
         return SchemaValidationError(
+            message=error_message,
+            validation_message=error_message,
             name=name,
             path=path,
-            validation_message=ex.context["reason"],
-            definition=ex.message,
+            value="",
+            definition="",
+            rule="",
+            rule_definition="",
         )
+
+    def _get_class(self) -> APICallRequestValidator:
+        version = SpecParser.get_openapi_version(self.spec)
+
+        try:
+            return marshaller_map[f"{version.major}.{version.minor}"]
+        except KeyError:
+            raise UnsupportedOpenAPIVersion(
+                f"Unsupported OpenAPI version: '{str(version)}'"
+            )

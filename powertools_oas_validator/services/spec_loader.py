@@ -1,38 +1,40 @@
 import os
 from typing import Protocol
 
-from openapi_spec_validator.readers import read_from_filename
+from openapi_core import Spec
 
 from powertools_oas_validator.exceptions import (
     FileNotExistsError,
     NotSupportedFileTypeError,
 )
-from powertools_oas_validator.types import LoadedSpec
 
 
 class SpecLoaderProtocol(Protocol):
-    def read_from_file_name(self, file_path: str) -> LoadedSpec:
+    def read_from_file_name(self) -> Spec:
         raise NotImplementedError  # pragma: nocover
 
 
 class SpecLoader:
+    oas_path: str
     validated_cache: bool = False
 
-    def read_from_file_name(self, file_path: str) -> LoadedSpec:
-        self.validate_file(file_path)
+    def __init__(self, oas_path: str) -> None:
+        self.oas_path = oas_path
 
-        spec_dict, spec_url = read_from_filename(file_path)
+    def read_from_file_name(self) -> Spec:
+        if not self.validated_cache:
+            self.validate_file()
 
-        return LoadedSpec(spec_dict=spec_dict, spec_url=spec_url)
+        return Spec.from_file_path(self.oas_path)
 
-    def validate_file(self, file_path: str) -> None:
+    def validate_file(self) -> None:
         if self.validated_cache:
             return
 
-        if not os.path.isfile(file_path):
-            raise FileNotExistsError(f"File does not exist on path: {file_path}")
+        if not os.path.isfile(self.oas_path):
+            raise FileNotExistsError(f"File does not exist on path: '{self.oas_path}'")
 
-        extension = file_path.split(".")[-1]
+        extension = self.oas_path.split(".")[-1]
 
         if extension not in ["yaml", "json"]:
             raise NotSupportedFileTypeError(

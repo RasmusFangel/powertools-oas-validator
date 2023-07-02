@@ -9,7 +9,7 @@ The *Powertools OAS Validator* adds a decorator that you can use with your lambd
 
 
 ## Usage
-Decorate your functions with `@validate_request(oas_path="openapi.yaml")` and your request (and schema) will be validated on a request.
+Decorate your functions with `@validate_request(oas_path="openapi.yaml")` and your request/event (and schema) will be validated on a request.
 
 
 ### Minimal Example
@@ -33,6 +33,17 @@ def lambda_handler(event: Dict, context: LambdaContext) -> Dict:
 
     return response
 ```
+
+## Error Handling
+If the validation fails, the decorator throws a `SchemaValidatonError` with relevant information about the failed validation.
+
+
+## Know Issues
+While all validation errors are caught, there is only limited information about the various errors. The decorator will try its best to throw a `SchemaValidatonError`
+(same as the Powertools validator would), with as much of the optional attributes as possible.
+
+In summary, it is possible that not all `SchemaValidationErrors`'s will have a nice validation message, in case you rely on piping it straight back to the client.
+
 
 ## Contributions
 Please make a pull request and I will review it ASAP.

@@ -87,7 +87,7 @@ class SpecValidator:
             rule_definition="",
         )
 
-    def _get_class(self) -> APICallRequestValidator:
+    def _get_class(self) -> type[APICallRequestValidator]:
         version = SpecParser.get_openapi_version(self.spec)
 
         try:

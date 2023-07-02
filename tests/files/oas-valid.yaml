@@ -2,12 +2,12 @@ openapi: 3.0.3
 
 
 info:
-  description: Info Description 
+  description: Info Description
   version: "1.0.0"
   title: Doc Title
 
 paths:
-  /test-endpoint:
+  /test-path/test-endpoint:
     post:
       summary: Summary
       tags:

@@ -5,7 +5,6 @@ event = {
     "path": "/test-path/test-endpoint",
     "httpMethod": "POST",
     "cookies": [
-        "nevergonnagiveyouup",
         "nevergonna=bringyoudown; secure; httponly; samesite=strict; path=/; domain=.example.com; max-age=3600; expires=Mon, 01-Jan-2020 00:00:00 GMT; version=1; comment=something; commenturl=http://example.com/",
     ],
     "headers": {
@@ -21,6 +20,7 @@ event = {
         "User-Agent": "python-requests/2.28.2",
         "X-Forwarded-Port": "443",
         "X-Forwarded-Proto": "https",
+        "Host": "app.host.com",
     },
     "multiValueHeaders": {
         "Accept": ["*/*"],

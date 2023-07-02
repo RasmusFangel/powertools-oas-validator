@@ -1,9 +1,6 @@
 name: CI
 
-on:
-  # Triggers the workflow on push but only for the main branch
-  push:
-    branches: [ main ]
+on: [push, pull_request]
 
 jobs:
   test:
@@ -26,7 +23,7 @@ jobs:
       - name: Run tests
         run: |
           poetry run pytest
-      
+
       - name: Run flake8
         run: |
           poetry run flake8 powertools_oas_validator

@@ -1,4 +1,3 @@
-from typing import Dict
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -8,44 +7,46 @@ from powertools_oas_validator.exceptions import (
     NotSupportedFileTypeError,
 )
 from powertools_oas_validator.services.spec_loader import SpecLoader
-from powertools_oas_validator.types import LoadedSpec
 
 
-@pytest.mark.parametrize("file_path", ["test.yaml", "test.json"])
-@patch("powertools_oas_validator.services.spec_loader.read_from_filename")
+@patch("powertools_oas_validator.services.spec_loader.Spec")
 @patch("powertools_oas_validator.services.spec_loader.os")
-def test_spec_loader_on_success(
-    os_mock: MagicMock, read_mock: MagicMock, file_path: str
-):
+def test_read_from_file_name(os_mock: MagicMock, spec_mock: MagicMock) -> None:
+    spec_mock.from_file_path = MagicMock()
     os_mock.path = MagicMock()
     os_mock.path.isfile = MagicMock(return_value=True)
 
-    spec_dict: Dict = {}
-    spec_url = "test"
+    SpecLoader(".yaml").read_from_file_name()
 
-    read_mock.return_value = (spec_dict, spec_url)
-
-    loaded_spec = SpecLoader().read_from_file_name(file_path)
-
-    assert type(loaded_spec) == LoadedSpec
-    assert loaded_spec.spec_dict == spec_dict
-    assert loaded_spec.spec_url == spec_url
-
-    os_mock.path.isfile.assert_called_once_with(file_path)
+    spec_mock.from_file_path.assert_called_once_with(".yaml")
 
 
-@pytest.mark.parametrize(
-    "file_path, file_exists, ex",
-    [(".yaml", False, FileNotExistsError), (".txt", True, NotSupportedFileTypeError)],
-)
 @patch("powertools_oas_validator.services.spec_loader.os")
-def test_spec_loader_on_file_error(
-    os_mock: MagicMock, file_path: str, file_exists: bool, ex: Exception
-):
+def test_validate_file_already_validated(os_mock: MagicMock) -> None:
     os_mock.path = MagicMock()
-    os_mock.path.isfile = MagicMock(return_value=file_exists)
+    os_mock.path.isfile = MagicMock()
 
-    with pytest.raises(ex):  # type: ignore
-        SpecLoader().read_from_file_name(file_path)
+    loader = SpecLoader("")
+    loader.validated_cache = True
 
-    os_mock.path.isfile.assert_called_once_with(file_path)
+    loader.validate_file()
+
+    os_mock.path.isfile.assert_not_called()
+
+
+@patch("powertools_oas_validator.services.spec_loader.os")
+def test_validate_file_not_exists(os_mock: MagicMock) -> None:
+    os_mock.path = MagicMock()
+    os_mock.path.isfile = MagicMock(return_value=False)
+
+    with pytest.raises(FileNotExistsError):
+        SpecLoader(".yaml").validate_file()
+
+
+@patch("powertools_oas_validator.services.spec_loader.os")
+def test_validate_file_not_supported(os_mock: MagicMock) -> None:
+    os_mock.path = MagicMock()
+    os_mock.path.isfile = MagicMock(return_value=True)
+
+    with pytest.raises(NotSupportedFileTypeError):
+        SpecLoader(".filenotsupported").validate_file()

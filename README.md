@@ -53,7 +53,7 @@ def example() -> Response:
 @validate_request(
   oas_path="openapi.yaml",
   validate_spec=True,  # default True, disable to not validate OpenAPI Schema
-  validate_body=True,  # default True, disable to not validate event["body"] 
+  validate_body=True,  # default True, disable to not validate event["body"]
   validate_headers=True,  # default True, disable to not validate event["headers"]
   validate_query=True,  # default True, disable to not validate event["rawQueryString"]
   validate_path=True,  # default True, disable to not validate path parameters
@@ -67,4 +67,4 @@ def lambda_handler(event: Dict, context: LambdaContext) -> Dict:
 ```
 
 ## Contributions
-Please fork this repository and make a pull request from the fork and I will review it ASAP.
+Please make a pull request and I will review it ASAP.

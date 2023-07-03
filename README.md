@@ -16,9 +16,9 @@ Decorate your functions with `@validate_request(oas_path="openapi.yaml")` and yo
 
 ```python
 from typing import Dict
-from aws_lambda_powertools.event_handler import APIGatewayRestResolve, Rresponse
+from aws_lambda_powertools.event_handler import APIGatewayRestResolver, Response
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from aws_lambda_powertools.middleware import validate_request
+from powertools_oas_validator.middleware import validate_request
 
 
 app = APIGatewayRestResolver()

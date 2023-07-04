@@ -12,3 +12,7 @@ class InvalidEventError(Exception):
 
 class UnsupportedOpenAPIVersion(Exception):
     ...
+
+
+class UnhandledValidationError(Exception):
+    ...

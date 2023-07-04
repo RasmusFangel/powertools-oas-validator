@@ -6,6 +6,7 @@ from openapi_core.templating.security.exceptions import SecurityNotFound
 from openapi_core.validation.request.exceptions import ParameterValidationError
 from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
 
+from powertools_oas_validator.exceptions import UnhandledValidationError
 from powertools_oas_validator.services.error_handler import ErrorHandler
 from powertools_oas_validator.types import Request
 
@@ -19,7 +20,7 @@ ex_result = [
         SchemaValidationError,
     ),
     (SecurityNotFound(schemes=[["test"]]), SchemaValidationError),
-    (Exception, ValueError),
+    (Exception, UnhandledValidationError),
 ]
 
 

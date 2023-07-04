@@ -29,10 +29,11 @@ jobs:
       - name: Run tests
         run: |
           poetry run pytest
-
       - name: Run flake8
         run: |
           poetry run flake8 powertools_oas_validator
       - name: Run mypy
         run: |
           poetry run mypy powertools_oas_validator
+      - name: Coveralls GitHub Action
+        uses: coverallsapp/github-action@v2

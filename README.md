@@ -8,6 +8,14 @@
 The *Powertools OAS Validator* adds a decorator that you can use with your lambda handlers and have the events validated against an OpenAPI schema instead.
 
 
+## Installation
+Poetry:
+`poetry add powertools-oas-validator`
+
+Pip:
+`pip install powertools-oas-validator`
+
+
 ## Usage
 Decorate your functions with `@validate_request(oas_path="openapi.yaml")` and your request/event (and schema) will be validated on a request.
 

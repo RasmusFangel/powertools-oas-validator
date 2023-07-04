@@ -32,7 +32,7 @@ paths:
                     - ENUM_2
       responses:
         "200":
-          description: Reps Description
+          description: Resp Description
           content:
             application/json:
               schema:

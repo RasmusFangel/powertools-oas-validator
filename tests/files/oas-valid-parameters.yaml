@@ -12,23 +12,17 @@ paths:
       summary: Summary
       tags:
         - Test
-      requestBody:
-        description: Description
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - param_1
-                - param_2
-              properties:
-                param_1:
-                  description: Param 1
-                  type: string
-                param_2:
-                  description: Param 2
-                  type: string
+      parameters:
+        - in: query
+          name: query_param_1
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: query_param_2
+          required: true
+          schema:
+            type: string
       responses:
         "200":
           description: Resp Description

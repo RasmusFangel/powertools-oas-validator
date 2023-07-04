@@ -10,24 +10,19 @@ paths:
   /test-path/test-endpoint:
     post:
       summary: Summary
+      security:
+       - BasicAuth: []
       tags:
         - Test
       requestBody:
         description: Description
-        required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-                - param_1
-                - param_2
               properties:
                 param_1:
                   description: Param 1
-                  type: string
-                param_2:
-                  description: Param 2
                   type: string
       responses:
         "200":
@@ -40,3 +35,9 @@ paths:
                   message:
                     description: message_example
                     type: string
+
+components:
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic

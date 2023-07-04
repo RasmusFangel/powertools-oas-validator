@@ -1,10 +1,15 @@
 [tool.poetry]
 name = "powertools-oas-validator"
-version = "0.5.0"
+version = "0.5.1"
 description = ""
 authors = ["Rasmus Hansen <R.FangelHansen@gmail.com>"]
 license = "MIT License"
 readme = "README.md"
+
+homepage = "https://github.com/RasmusFangel/powertools-oas-validator"
+repository = "https://github.com/RasmusFangel/powertools-oas-validator"
+documentation = "https://github.com/RasmusFangel/powertools-oas-validator"
+
 packages = [{include = "powertools_oas_validator"}]
 
 [tool.poetry.dependencies]

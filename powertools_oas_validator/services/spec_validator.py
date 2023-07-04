@@ -1,20 +1,19 @@
-import re
 from typing import Dict
 
-from aws_lambda_powertools.utilities.validation import SchemaValidationError
 from openapi_core import validate_request
+from openapi_core.validation.request.exceptions import ParameterValidationError
 from openapi_core.validation.request.validators import APICallRequestValidator
-from openapi_core.validation.schemas.exceptions import ValidateError
+from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
 
 from powertools_oas_validator.exceptions import UnsupportedOpenAPIVersion
 from powertools_oas_validator.overrides import (
     V30RequestUnmarshaller,
     V31RequestUnmarshaller,
 )
+from powertools_oas_validator.services.error_handler import ErrorHandler
 from powertools_oas_validator.services.event_parser import EventParserProtocol
 from powertools_oas_validator.services.spec_loader import SpecLoaderProtocol
 from powertools_oas_validator.services.spec_parser import SpecParser
-from powertools_oas_validator.types import Request
 
 marshaller_map = {"3.1": V31RequestUnmarshaller, "3.0": V30RequestUnmarshaller}
 
@@ -45,47 +44,8 @@ class SpecValidator:
                 cls=self._get_class(),  # type: ignore
             )
 
-        except ValidateError as ex:
-            raise self.schema_validaton_error(ex, request)
-
-    def schema_validaton_error(
-        self, ex: ValidateError, request: Request
-    ) -> SchemaValidationError:
-        error_message = ""
-
-        error_path = ""
-        violating_params = ""
-        for error in ex.schema_errors:  # type: ignore
-            if "property" in error.message:
-                error_path = ".requestBody"
-            elif "parameter" in error.message:
-                error_path = ".parameters"
-            try:
-                violating_params = (
-                    violating_params
-                    + re.search("'(.+?)'", error.message).group(1)  # type: ignore
-                    + ", "
-                )
-            except Exception:
-                violating_params = ""
-
-            error_message = error_message + error.message + ". "
-
-        name = request.path.replace("/", ".").lstrip(".") + error_path
-        name = name + f"[{violating_params.rstrip(', ')}]"
-        error_message = error_message.rstrip(" ")
-        path = name.replace("[", ".").replace("]", "").split(".")
-
-        return SchemaValidationError(
-            message=error_message,
-            validation_message=error_message,
-            name=name,
-            path=path,
-            value="",
-            definition="",
-            rule="",
-            rule_definition="",
-        )
+        except (ParameterValidationError, InvalidSchemaValue) as ex:
+            raise ErrorHandler.to_schema_validation_error(ex, request)
 
     def _get_class(self) -> type[APICallRequestValidator]:
         version = SpecParser.get_openapi_version(self.spec)

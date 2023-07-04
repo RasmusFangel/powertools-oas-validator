@@ -1,6 +1,7 @@
 from typing import Dict
 
 from openapi_core import validate_request
+from openapi_core.templating.security.exceptions import SecurityNotFound
 from openapi_core.validation.request.exceptions import ParameterValidationError
 from openapi_core.validation.request.validators import APICallRequestValidator
 from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
@@ -44,7 +45,7 @@ class SpecValidator:
                 cls=self._get_class(),  # type: ignore
             )
 
-        except (ParameterValidationError, InvalidSchemaValue) as ex:
+        except (ParameterValidationError, InvalidSchemaValue, SecurityNotFound) as ex:
             raise ErrorHandler.to_schema_validation_error(ex, request)
 
     def _get_class(self) -> type[APICallRequestValidator]:

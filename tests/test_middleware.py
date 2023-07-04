@@ -33,6 +33,11 @@ def dummy_handler_valid_parameters(event: Dict, context: LambdaContext) -> None:
     app.resolve(event, context)
 
 
+@validate_request(oas_path=os.getcwd() + "/tests/files/oas-valid-security.yaml")
+def dummy_handler_valid_security(event: Dict, context: LambdaContext) -> None:
+    app.resolve(event, context)
+
+
 @validate_request(oas_path=os.getcwd() + "/tests/files/oas-invalid.yaml")
 def dummy_handler_invalid(event: Dict, context: LambdaContext) -> None:
     app.resolve(event, context)
@@ -53,6 +58,30 @@ def test_validate_oas_on_succes(mock_event: Dict) -> None:
     mock_event["body"] = json.dumps({"param_1": "Param 1", "param_2": "Param 2"})
 
     dummy_handler_valid_body(mock_event, context)
+
+
+def test_validate_oas_on_security_validation_error(mock_event: Dict) -> None:
+    context = MagicMock()
+    mock_event["body"] = json.dumps({})
+
+    try:
+        dummy_handler_valid_security(mock_event, context)
+    except Exception as ex:
+        assert type(ex) == SchemaValidationError
+        assert ex.name == "test-path.test-endpoint.security[BasicAuth]"
+        assert ex.path == [
+            "test-path",
+            "test-endpoint",
+            "security",
+            "BasicAuth",
+        ]
+        assert (
+            ex.validation_message
+            == "'[['BasicAuth']]' are required security scheme(s)."
+        )
+    else:
+        # If no exception is raised
+        assert False
 
 
 def test_validate_oas_on_requestBody_validation_error(mock_event: Dict) -> None:

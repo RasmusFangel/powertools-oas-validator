@@ -1,0 +1,43 @@
+openapi: 3.0.3
+
+
+info:
+  description: Info Description
+  version: "1.0.0"
+  title: Doc Title
+
+paths:
+  /test-path/test-endpoint:
+    post:
+      summary: Summary
+      security:
+       - BasicAuth: []
+      tags:
+        - Test
+      requestBody:
+        description: Description
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                param_1:
+                  description: Param 1
+                  type: string
+      responses:
+        "200":
+          description: Resp Description
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    description: message_example
+                    type: string
+
+components:
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic

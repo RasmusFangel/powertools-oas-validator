@@ -2,6 +2,7 @@ import re
 from typing import List, Union
 
 from aws_lambda_powertools.utilities.validation.exceptions import SchemaValidationError
+from openapi_core.templating.security.exceptions import SecurityNotFound
 from openapi_core.validation.request.exceptions import ParameterValidationError
 from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
 
@@ -11,16 +12,40 @@ from powertools_oas_validator.types import Request
 class ErrorHandler:
     @staticmethod
     def to_schema_validation_error(
-        ex: Union[ParameterValidationError, InvalidSchemaValue], request: Request
+        ex: Union[ParameterValidationError, InvalidSchemaValue, SecurityNotFound],
+        request: Request,
     ) -> SchemaValidationError:
-        if issubclass(type(ex), ParameterValidationError):
+        ex_type = type(ex)
+        if issubclass(ex_type, ParameterValidationError):
             return ErrorHandler._handle_parameter_error(ex, request)  # type: ignore
-        elif type(ex) == InvalidSchemaValue:
-            return ErrorHandler._handle_body_error(ex, request)
+        elif ex_type == InvalidSchemaValue:
+            return ErrorHandler._handle_body_error(ex, request)  # type: ignore
+        elif ex_type == SecurityNotFound:
+            return ErrorHandler._handle_security_error(ex, request)  # type: ignore
         else:
             raise ValueError(
-                f"'{type(ex)}' is not mapped to a function. Consider adding it."
+                f"'{ex_type}' is not mapped to a function. Consider adding it."
             )
+
+    @staticmethod
+    def _handle_security_error(
+        ex: SecurityNotFound, request: Request
+    ) -> SchemaValidationError:
+        violating_schemes = ex.schemes[0]
+        name = ErrorHandler._get_name(request, "security", violating_schemes[0])
+
+        validation_message = f"'{ex.schemes}' are required security scheme(s)."
+
+        return SchemaValidationError(
+            message=None,
+            validation_message=validation_message,
+            name=name,
+            path=ErrorHandler._get_path(name),
+            value=None,
+            definition=None,
+            rule=None,
+            rule_definition=None,
+        )
 
     @staticmethod
     def _handle_parameter_error(

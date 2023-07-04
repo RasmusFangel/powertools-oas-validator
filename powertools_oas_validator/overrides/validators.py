@@ -1,10 +1,10 @@
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from openapi_core import Spec
 from openapi_core.datatypes import RequestParameters
 from openapi_core.exceptions import OpenAPIError
 from openapi_core.validation.decorators import ValidationErrorWrapper
-from openapi_core.validation.request.validators import BaseRequestValidator
+from openapi_core.validation.request.validators import BaseRequestValidator, Dict
 
 
 class CustomBaseRequestValidator(BaseRequestValidator):

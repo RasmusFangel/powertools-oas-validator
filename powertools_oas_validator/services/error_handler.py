@@ -6,6 +6,7 @@ from openapi_core.templating.security.exceptions import SecurityNotFound
 from openapi_core.validation.request.exceptions import ParameterValidationError
 from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
 
+from powertools_oas_validator.exceptions import UnhandledValidationError
 from powertools_oas_validator.types import Request
 
 
@@ -24,8 +25,10 @@ class ErrorHandler:
         elif ex_type == SecurityNotFound:
             error = ErrorHandler._handle_security_error(ex, request)  # type: ignore
         else:
-            raise ValueError(
-                f"'{ex_type}' is not mapped to a function. Consider adding it."
+            raise UnhandledValidationError(
+                f"'{ex_type}' is unhandled. Please open an issue on:"
+                + "https://github.com/RasmusFangel/powertools-oas-validator/issues"
+                + " and it will be resolved ASAP!"
             )
         raise error
 

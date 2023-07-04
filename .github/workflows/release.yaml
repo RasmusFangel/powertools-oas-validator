@@ -14,10 +14,12 @@ jobs:
       #-------------------------------------#
       - name: Check out the repository
         uses: actions/checkout@v3
+
       - name: Get tag
         id: tag
         run: |
           echo ::set-output name=tag::${GITHUB_REF#refs/tags/}
+
       - name: "Setup Python, Poetry and Dependencies"
         uses: packetcoders/action-setup-cache-python-poetry@main
         with:
@@ -30,21 +32,25 @@ jobs:
       - name: Run tests
         run: |
           poetry run pytest
-      
+
       - name: Run flake8
         run: |
           poetry run flake8 powertools_oas_validator
+
       - name: Run mypy
         run: |
           poetry run mypy powertools_oas_validator
+
       - name: Make build
         run: |
           poetry build -f sdist
+
       - name: Upload artifact
         uses: actions/upload-artifact@v1
         with:
           name: powertools_oas_validator-${{ steps.tag.outputs.tag }}.tar.gz
           path: dist/powertools_oas_validator-${{ steps.tag.outputs.tag }}.tar.gz
+
       - name: Publish release
         env:
           POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}

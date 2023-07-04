@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-    - main
+    - "*"
   pull_request:
     branches:
     - main
@@ -17,6 +17,7 @@ jobs:
       #-------------------------------------#
       - name: Check out the repository
         uses: actions/checkout@v3
+
       - name: "Setup Python, Poetry and Dependencies"
         uses: packetcoders/action-setup-cache-python-poetry@main
         with:
@@ -33,6 +34,10 @@ jobs:
       - name: Run flake8
         run: |
           poetry run flake8 powertools_oas_validator
+
       - name: Run mypy
         run: |
           poetry run mypy powertools_oas_validator
+
+      - name: Coveralls GitHub Action
+        uses: coverallsapp/github-action@v2

@@ -46,7 +46,7 @@ class SpecValidator:
             )
 
         except (ParameterValidationError, InvalidSchemaValue, SecurityNotFound) as ex:
-            raise ErrorHandler.to_schema_validation_error(ex, request)
+            ErrorHandler.raise_schema_validation_error(ex, request)
 
     def _get_class(self) -> type[APICallRequestValidator]:
         version = SpecParser.get_openapi_version(self.spec)

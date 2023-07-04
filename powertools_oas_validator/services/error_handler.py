@@ -11,21 +11,23 @@ from powertools_oas_validator.types import Request
 
 class ErrorHandler:
     @staticmethod
-    def to_schema_validation_error(
+    def raise_schema_validation_error(
         ex: Union[ParameterValidationError, InvalidSchemaValue, SecurityNotFound],
         request: Request,
-    ) -> SchemaValidationError:
+    ) -> None:
         ex_type = type(ex)
+
         if issubclass(ex_type, ParameterValidationError):
-            return ErrorHandler._handle_parameter_error(ex, request)  # type: ignore
+            error = ErrorHandler._handle_parameter_error(ex, request)  # type: ignore
         elif ex_type == InvalidSchemaValue:
-            return ErrorHandler._handle_body_error(ex, request)  # type: ignore
+            error = ErrorHandler._handle_body_error(ex, request)  # type: ignore
         elif ex_type == SecurityNotFound:
-            return ErrorHandler._handle_security_error(ex, request)  # type: ignore
+            error = ErrorHandler._handle_security_error(ex, request)  # type: ignore
         else:
             raise ValueError(
                 f"'{ex_type}' is not mapped to a function. Consider adding it."
             )
+        raise error
 
     @staticmethod
     def _handle_security_error(

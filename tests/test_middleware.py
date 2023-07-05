@@ -33,6 +33,11 @@ def dummy_handler_valid_parameters(event: Dict, context: LambdaContext) -> None:
     app.resolve(event, context)
 
 
+@validate_request(oas_path=os.getcwd() + "/tests/files/oas-valid-body-enum.yaml")
+def dummy_handler_valid_enum(event: Dict, context: LambdaContext) -> None:
+    app.resolve(event, context)
+
+
 @validate_request(oas_path=os.getcwd() + "/tests/files/oas-valid-security.yaml")
 def dummy_handler_valid_security(event: Dict, context: LambdaContext) -> None:
     app.resolve(event, context)
@@ -84,6 +89,27 @@ def test_validate_oas_on_security_validation_error(mock_event: Dict) -> None:
         assert False
 
 
+def test_validate_oas_on_requestBody_validation_error_enum(mock_event: Dict) -> None:
+    context = MagicMock()
+    mock_event["body"] = json.dumps({"param_1": "invalid_param"})
+
+    try:
+        dummy_handler_valid_enum(mock_event, context)
+    except Exception as ex:
+        assert type(ex) == SchemaValidationError
+        assert ex.name == "test-path.test-endpoint.requestBody[invalid_param]"
+        assert ex.path == [
+            "test-path",
+            "test-endpoint",
+            "requestBody",
+            "invalid_param",
+        ]
+        assert ex.validation_message == "'invalid_param' is not one of ['value_1']"
+    else:
+        # If no exception is raised
+        assert False
+
+
 def test_validate_oas_on_requestBody_validation_error(mock_event: Dict) -> None:
     context = MagicMock()
     mock_event["body"] = json.dumps({"param_invalid": "invalid_param"})
@@ -99,9 +125,7 @@ def test_validate_oas_on_requestBody_validation_error(mock_event: Dict) -> None:
             "requestBody",
             "param_1",
         ]
-        assert (
-            ex.validation_message == "['param_1', 'param_2'] are required propertie(s)"
-        )
+        assert ex.validation_message == "'param_1' is a required property"
     else:
         # If no exception is raised
         assert False

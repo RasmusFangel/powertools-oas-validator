@@ -78,13 +78,14 @@ class ErrorHandler:
         violating_req_params = []
 
         for error in ex.schema_errors:
-            if "required" in error.message:  # type: ignore
-                try:
-                    violating_req_params.append(
-                        re.search("'(.+?)'", error.message).group(1)  # type: ignore
+            err_msg = str(error.message)  # type: ignore
+            if "required" in err_msg or "one of" in err_msg:
+                violating_req_params.append(
+                    (
+                        ErrorHandler._get_violating_param(err_msg),
+                        error.message,  # type: ignore
                     )
-                except IndexError:
-                    ...
+                )
             else:
                 raise ValueError(
                     (
@@ -95,7 +96,7 @@ class ErrorHandler:
 
         try:
             name = ErrorHandler._get_name(
-                request, "requestBody", violating_req_params[0]
+                request, "requestBody", violating_req_params[0][0]
             )
             path = ErrorHandler._get_path(name)
 
@@ -107,7 +108,7 @@ class ErrorHandler:
 
         if violating_req_params:
             try:
-                validation_message = f"{violating_req_params} are required propertie(s)"
+                validation_message = violating_req_params[0][1]
             except KeyError:
                 ...
 
@@ -131,6 +132,13 @@ class ErrorHandler:
     @staticmethod
     def _get_path(name: str) -> List[str]:
         return name.replace("[", ".").replace("]", "").split(".")
+
+    @staticmethod
+    def _get_violating_param(p: str) -> str:
+        try:
+            return re.search("'(.+?)'", p).group(1)  # type: ignore
+        except IndexError:
+            return ""
 
 
 error_to_func = {

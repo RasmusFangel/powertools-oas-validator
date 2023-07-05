@@ -1,5 +1,5 @@
 import re
-from typing import List, Union
+from typing import List
 
 from aws_lambda_powertools.utilities.validation.exceptions import SchemaValidationError
 from openapi_core.templating.security.exceptions import SecurityNotFound
@@ -13,7 +13,7 @@ from powertools_oas_validator.types import Request
 class ErrorHandler:
     @staticmethod
     def raise_schema_validation_error(
-        ex: Union[ParameterValidationError, InvalidSchemaValue, SecurityNotFound],
+        ex: Exception,
         request: Request,
     ) -> None:
         ex_type = type(ex)
@@ -56,7 +56,7 @@ class ErrorHandler:
     def _handle_parameter_error(
         ex: ParameterValidationError, request: Request
     ) -> SchemaValidationError:
-        name = ErrorHandler._get_name(request, "parameters", ex.name)  # type: ignore
+        name = ErrorHandler._get_name(request, "parameters", ex.name)
 
         validation_message = f"'{ex.name}' is a required {ex.location} parameter."
 

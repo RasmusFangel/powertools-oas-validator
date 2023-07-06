@@ -97,14 +97,37 @@ def test_validate_oas_on_requestBody_validation_error_enum(mock_event: Dict) -> 
         dummy_handler_valid_enum(mock_event, context)
     except Exception as ex:
         assert type(ex) == SchemaValidationError
-        assert ex.name == "test-path.test-endpoint.requestBody[invalid_param]"
+        assert ex.name == "test-path.test-endpoint.requestBody[param_1]"
         assert ex.path == [
             "test-path",
             "test-endpoint",
             "requestBody",
-            "invalid_param",
+            "param_1",
         ]
         assert ex.validation_message == "'invalid_param' is not one of ['value_1']"
+    else:
+        # If no exception is raised
+        assert False
+
+
+def test_validate_oas_requestBody_type_error(mock_event: Dict) -> None:
+    context = MagicMock()
+    mock_event["body"] = json.dumps(
+        {"param_1": "Param 1", "param_2": "Param 2", "param_3": "not an integer"}
+    )
+
+    try:
+        dummy_handler_valid_body(mock_event, context)
+    except Exception as ex:
+        assert type(ex) == SchemaValidationError
+        assert ex.name == "test-path.test-endpoint.requestBody[param_3]"
+        assert ex.path == [
+            "test-path",
+            "test-endpoint",
+            "requestBody",
+            "param_3",
+        ]
+        assert ex.validation_message == "'not an integer' is not of type 'integer'"
     else:
         # If no exception is raised
         assert False

@@ -7,7 +7,7 @@ from openapi_core.validation.request.exceptions import ParameterValidationError
 from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
 
 from powertools_oas_validator.exceptions import UnhandledValidationError
-from powertools_oas_validator.types import Request
+from powertools_oas_validator.types import ParamError, Request
 
 
 class ErrorHandler:
@@ -79,24 +79,26 @@ class ErrorHandler:
 
         for error in ex.schema_errors:
             err_msg = str(error.message)  # type: ignore
-            if "required" in err_msg or "one of" in err_msg:
-                violating_req_params.append(
-                    (
-                        ErrorHandler._get_violating_param(err_msg),
-                        error.message,  # type: ignore
-                    )
-                )
-            else:
-                raise ValueError(
-                    (
-                        "Unmapped error type. Consider adding case for"
-                        + f"'{ex.message}'"  # type: ignore
-                    )
-                )
 
+            violating_param = ErrorHandler._get_violating_param(err_msg)
+            if "required" in err_msg:
+                param = violating_param
+            else:
+                kv_swap = {v: k for k, v in ex.value.items()}  # type: ignore
+                param = kv_swap[violating_param]
+
+            violating_req_params.append(
+                (
+                    ParamError(
+                        param=param,
+                        validation_message=err_msg,
+                        value=violating_param,
+                    )
+                )
+            )
         try:
             name = ErrorHandler._get_name(
-                request, "requestBody", violating_req_params[0][0]
+                request, "requestBody", violating_req_params[0].param
             )
             path = ErrorHandler._get_path(name)
 
@@ -108,7 +110,7 @@ class ErrorHandler:
 
         if violating_req_params:
             try:
-                validation_message = violating_req_params[0][1]
+                validation_message = violating_req_params[0].validation_message
             except KeyError:
                 ...
 

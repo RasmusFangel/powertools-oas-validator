@@ -14,6 +14,13 @@ class OpenAPIVersion:
         return f"{self.major}.{self.minor}.{self.pico}"
 
 
+@dataclass
+class ParamError:
+    param: str = ""
+    validation_message: str = ""
+    value: str = ""
+
+
 class Request(CoreRequest):
     def __init__(
         self,

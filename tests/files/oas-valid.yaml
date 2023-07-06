@@ -29,6 +29,9 @@ paths:
                 param_2:
                   description: Param 2
                   type: string
+                param_3:
+                  description: Param 3 (int)
+                  type: integer
       responses:
         "200":
           description: Resp Description

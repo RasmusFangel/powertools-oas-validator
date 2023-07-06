@@ -46,6 +46,17 @@ def lambda_handler(event: Dict, context: LambdaContext) -> Dict:
 If the validation fails, the decorator throws a `SchemaValidatonError` with relevant information about the failed validation.
 
 
+Example of a `SchemaValidatonError`:
+```python
+from aws_lambda_powertools.utilities.validation import SchemaValidationError
+
+SchemaValidatonError(
+  name="test-path.test-endpoint.requestBody[param_1]",
+  path=["test-path", "test-endpoint", "requestBody", "param_1"],
+  validation_message="'not an integer' is not of type 'integer'"
+)
+```
+
 ## Know Issues
 While all validation errors are caught, there is only limited information about the various errors. The decorator will try its best to throw a `SchemaValidatonError`
 (same as the Powertools validator would), with as much of the optional attributes as possible.

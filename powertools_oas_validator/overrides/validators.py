@@ -18,6 +18,14 @@ class CustomBaseRequestValidator(BaseRequestValidator):
         )
 
     @CustomValidationErrorWrapper(OpenAPIError)
+    def _get_parameter(
+        self, parameters: RequestParameters, param: Spec
+    ) -> Optional[Dict[str, str]]:
+        return super()._get_parameter.__wrapped__(  # type: ignore
+            self, parameters=parameters, param=param
+        )
+
+    @CustomValidationErrorWrapper(OpenAPIError)
     def _get_security(
         self, parameters: RequestParameters, operation: Spec
     ) -> Optional[Dict[str, str]]:

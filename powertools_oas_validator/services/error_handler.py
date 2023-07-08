@@ -1,13 +1,16 @@
-import re
-from typing import List
+from typing import Union
 
 from aws_lambda_powertools.utilities.validation.exceptions import SchemaValidationError
+from openapi_core.casting.schemas.exceptions import CastError
 from openapi_core.templating.security.exceptions import SecurityNotFound
-from openapi_core.validation.request.exceptions import ParameterValidationError
+from openapi_core.validation.request.exceptions import (
+    MissingRequiredRequestBody,
+    ParameterValidationError,
+)
 from openapi_core.validation.schemas.exceptions import InvalidSchemaValue
 
 from powertools_oas_validator.exceptions import UnhandledValidationError
-from powertools_oas_validator.types import ParamError, Request
+from powertools_oas_validator.types import Request
 
 
 class ErrorHandler:
@@ -18,12 +21,12 @@ class ErrorHandler:
     ) -> None:
         ex_type = type(ex)
 
-        if issubclass(ex_type, ParameterValidationError):
-            error = ErrorHandler._handle_parameter_error(ex, request)  # type: ignore
-        elif ex_type == InvalidSchemaValue:
+        if issubclass(ex_type, ParameterValidationError) or ex_type == CastError:
+            error = ErrorHandler._handle_parameter_error(ex)  # type: ignore
+        elif ex_type == InvalidSchemaValue or ex_type == MissingRequiredRequestBody:
             error = ErrorHandler._handle_body_error(ex, request)  # type: ignore
         elif ex_type == SecurityNotFound:
-            error = ErrorHandler._handle_security_error(ex, request)  # type: ignore
+            error = ErrorHandler._handle_security_error(ex)  # type: ignore
         else:
             raise UnhandledValidationError(
                 f"'{ex_type}' is unhandled. Please open an issue on:"
@@ -33,90 +36,15 @@ class ErrorHandler:
         raise error
 
     @staticmethod
-    def _handle_security_error(
-        ex: SecurityNotFound, request: Request
-    ) -> SchemaValidationError:
+    def _handle_security_error(ex: SecurityNotFound) -> SchemaValidationError:
         violating_schemes = ex.schemes[0]
-        name = ErrorHandler._get_name(request, "security", violating_schemes[0])
-
-        validation_message = f"'{ex.schemes}' are required security scheme(s)."
-
-        return SchemaValidationError(
-            message=None,
-            validation_message=validation_message,
-            name=name,
-            path=ErrorHandler._get_path(name),
-            value=None,
-            definition=None,
-            rule=None,
-            rule_definition=None,
-        )
-
-    @staticmethod
-    def _handle_parameter_error(
-        ex: ParameterValidationError, request: Request
-    ) -> SchemaValidationError:
-        name = ErrorHandler._get_name(request, "parameters", ex.name)
-
-        validation_message = f"'{ex.name}' is a required {ex.location} parameter."
+        name = f"security[{violating_schemes[0]}]"
+        path = name.replace("]", "").split("[")
+        validation_message = f"'{violating_schemes}' are required security scheme(s)"
 
         return SchemaValidationError(
-            message=None,
-            validation_message=validation_message,
-            name=name,
-            path=ErrorHandler._get_path(name),
-            value=None,
-            definition=None,
-            rule=None,
-            rule_definition=None,
-        )
-
-    @staticmethod
-    def _handle_body_error(
-        ex: InvalidSchemaValue, request: Request
-    ) -> SchemaValidationError:
-        violating_req_params = []
-
-        for error in ex.schema_errors:
-            err_msg = str(error.message)  # type: ignore
-
-            violating_param = ErrorHandler._get_violating_param(err_msg)
-            if "required" in err_msg:
-                param = violating_param
-            else:
-                kv_swap = {v: k for k, v in ex.value.items()}  # type: ignore
-                param = kv_swap[violating_param]
-
-            violating_req_params.append(
-                (
-                    ParamError(
-                        param=param,
-                        validation_message=err_msg,
-                        value=violating_param,
-                    )
-                )
-            )
-        try:
-            name = ErrorHandler._get_name(
-                request, "requestBody", violating_req_params[0].param
-            )
-            path = ErrorHandler._get_path(name)
-
-        except KeyError:
-            name = ErrorHandler._get_name(request, "request_body", "")
-            path = ErrorHandler._get_path("")
-
-        validation_message = ""
-
-        if violating_req_params:
-            try:
-                validation_message = violating_req_params[0].validation_message
-            except KeyError:
-                ...
-
-        return SchemaValidationError(
-            message=None,
-            validation_message=validation_message,
+            message=validation_message,
+            validation_message=validation_message + ".",
             name=name,
             path=path,
             value=None,
@@ -126,24 +54,61 @@ class ErrorHandler:
         )
 
     @staticmethod
-    def _get_name(request: Request, path: str, violating_param: str) -> str:
-        return (
-            request.path.replace("/", ".").lstrip(".") + f".{path}[{violating_param}]"
+    def _handle_parameter_error(
+        ex: Union[ParameterValidationError, CastError],
+    ) -> SchemaValidationError:
+        if type(ex) == CastError:
+            validation_message = f"Parameter '{ex.value}' is not of type: '{ex.type}'"
+            return SchemaValidationError(
+                message=validation_message, validation_message=validation_message + "."
+            )
+        name = f"parameters[{ex.name}]"  # type: ignore
+
+        validation_message = (
+            f"'{ex.name}' is a required '{ex.location}' parameter"  # type: ignore
+        )
+
+        return SchemaValidationError(
+            message=validation_message,
+            validation_message=validation_message + ".",
+            name=name,
+            path=name.replace("[", "").replace("]", "").split("."),
+            value=None,
+            definition=None,
+            rule=ex.location,  # type: ignore
+            rule_definition=None,
         )
 
     @staticmethod
-    def _get_path(name: str) -> List[str]:
-        return name.replace("[", ".").replace("]", "").split(".")
-
-    @staticmethod
-    def _get_violating_param(p: str) -> str:
+    def _handle_body_error(
+        ex: Union[InvalidSchemaValue, MissingRequiredRequestBody], request: Request
+    ) -> SchemaValidationError:
+        if type(ex) == MissingRequiredRequestBody:
+            return SchemaValidationError(
+                message="Missing required 'requestBody'",
+                validation_message="Missing required 'requestBody'.",
+            )
+        error = None
         try:
-            return re.search("'(.+?)'", p).group(1)  # type: ignore
+            error = ex.schema_errors[0]  # type: ignore
         except IndexError:
-            return ""
+            raise ValueError("Error has no Schema Error! Can't process errors")
 
+        try:
+            prop = error.absolute_path[0]
+        except IndexError:
+            prop = ""
 
-error_to_func = {
-    ParameterValidationError: ErrorHandler._handle_parameter_error,
-    InvalidSchemaValue: ErrorHandler._handle_body_error,
-}
+        name = f"requestBody.content.{request.mimetype}.schema.properties[{prop}]"
+        path = name.replace("[", ".").replace("]", "").split(".")
+
+        return SchemaValidationError(
+            message=error.message,
+            validation_message=error.message + ".",
+            name=name,
+            path=path,
+            value=error.instance,
+            definition=None,
+            rule=error.validator_value,
+            rule_definition=error.validator,
+        )

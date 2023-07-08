@@ -5,7 +5,7 @@ from openapi_core.protocols import Request as CoreRequest
 
 
 @dataclass
-class OpenAPIVersion:
+class OpenAPIVersion:  # pragma: nocover
     major: int
     minor: int
     pico: int
@@ -14,14 +14,7 @@ class OpenAPIVersion:
         return f"{self.major}.{self.minor}.{self.pico}"
 
 
-@dataclass
-class ParamError:
-    param: str = ""
-    validation_message: str = ""
-    value: str = ""
-
-
-class Request(CoreRequest):
+class Request(CoreRequest):  # pragma: nocover
     def __init__(
         self,
         host_url: str,

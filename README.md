@@ -53,7 +53,11 @@ from aws_lambda_powertools.utilities.validation import SchemaValidationError
 SchemaValidatonError(
   name="test-path.test-endpoint.requestBody[param_1]",
   path=["test-path", "test-endpoint", "requestBody", "param_1"],
-  validation_message="'not an integer' is not of type 'integer'"
+  validation_message="'not an integer' is not of type 'integer'.",
+  message="'not an integer' is not of type 'integer'",
+  rule="int",
+  rule_definition="type",
+  value="'not an integer'"
 )
 ```
 

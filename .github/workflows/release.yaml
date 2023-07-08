@@ -46,7 +46,7 @@ jobs:
           poetry build -f sdist
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: powertools_oas_validator-${{ steps.tag.outputs.tag }}.tar.gz
           path: dist/powertools_oas_validator-${{ steps.tag.outputs.tag }}.tar.gz

@@ -61,6 +61,10 @@ SchemaValidatonError(
 )
 ```
 
+### Articles
+- [OpenAPI Spec and AWS Lambda Powertools](https://medium.com/@rasmusfangel/openapi-spec-and-aws-lambda-powertools-aa9e63f579d1)
+
+
 ## Know Issues
 While all validation errors are caught, there is only limited information about the various errors. The decorator will try its best to throw a `SchemaValidatonError`
 (same as the Powertools validator would), with as much of the optional attributes as possible.

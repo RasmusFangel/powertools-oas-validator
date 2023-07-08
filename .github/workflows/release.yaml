@@ -23,8 +23,8 @@ jobs:
       - name: "Setup Python, Poetry and Dependencies"
         uses: packetcoders/action-setup-cache-python-poetry@main
         with:
-          python-version: 3.8
-          poetry-version: 1.2.2
+          python-version: 3.10
+          poetry-version: 1.5.1
 
       #------------------------#
       #  Run your actual job   #
@@ -50,6 +50,7 @@ jobs:
         with:
           name: powertools_oas_validator-${{ steps.tag.outputs.tag }}.tar.gz
           path: dist/powertools_oas_validator-${{ steps.tag.outputs.tag }}.tar.gz
+          if-no-files-found: error
 
       - name: Publish release
         env:

@@ -62,9 +62,11 @@ class ErrorHandler:
             return SchemaValidationError(
                 message=validation_message, validation_message=validation_message + "."
             )
-        name = f"parameters[{ex.name}]"
+        name = f"parameters[{ex.name}]"  # type: ignore
 
-        validation_message = f"'{ex.name}' is a required '{ex.location}' parameter"
+        validation_message = (
+            f"'{ex.name}' is a required '{ex.location}' parameter"  # type: ignore
+        )
 
         return SchemaValidationError(
             message=validation_message,
@@ -73,7 +75,7 @@ class ErrorHandler:
             path=name.replace("[", "").replace("]", "").split("."),
             value=None,
             definition=None,
-            rule=ex.location,
+            rule=ex.location,  # type: ignore
             rule_definition=None,
         )
 

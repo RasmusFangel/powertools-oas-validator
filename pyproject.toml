@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "powertools-oas-validator"
-version = "6.1.0"
+version = "0.6.2"
 description = ""
 authors = ["Rasmus Hansen <R.FangelHansen@gmail.com>"]
 license = "MIT License"

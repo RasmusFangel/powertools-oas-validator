@@ -67,7 +67,7 @@ SchemaValidatonError(
 
 ## Know Issues
 While all validation errors are caught, there is only limited information about the various errors. The decorator will try its best to throw a `SchemaValidatonError`
-(same as the Powertools validator would), with as much of the optional attributes as possible.
+(same as the Powertools validator would), with as many of the optional attributes as possible.
 
 In summary, it is possible that not all `SchemaValidationErrors`'s will have the correct name and path attributes.
 

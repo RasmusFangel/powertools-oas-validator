@@ -102,7 +102,7 @@ class EventParser(EventParserProtocol):
         except KeyError:
             return ""
 
-        if type(body) == str:
+        if type(body) is str:
             return body
         else:
             return json.dumps(body)

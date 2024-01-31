@@ -57,16 +57,16 @@ class ErrorHandler:
     def _handle_parameter_error(
         ex: Union[ParameterValidationError, CastError],
     ) -> SchemaValidationError:
-        if type(ex) == CastError:
+        if type(ex) is CastError:
             validation_message = f"Parameter '{ex.value}' is not of type: '{ex.type}'"
             return SchemaValidationError(
                 message=validation_message, validation_message=validation_message + "."
             )
         name = f"parameters[{ex.name}]"  # type: ignore
 
-        validation_message = (
-            f"'{ex.name}' is a required '{ex.location}' parameter"  # type: ignore
-        )
+        ex_location = ex.location  # type: ignore
+        ex_name = ex.name  # type: ignore
+        validation_message = f"'{ex_name}' is a required '{ex_location}' parameter"
 
         return SchemaValidationError(
             message=validation_message,
@@ -83,7 +83,7 @@ class ErrorHandler:
     def _handle_body_error(
         ex: Union[InvalidSchemaValue, MissingRequiredRequestBody], request: Request
     ) -> SchemaValidationError:
-        if type(ex) == MissingRequiredRequestBody:
+        if type(ex) is MissingRequiredRequestBody:
             return SchemaValidationError(
                 message="Missing required 'requestBody'",
                 validation_message="Missing required 'requestBody'.",
